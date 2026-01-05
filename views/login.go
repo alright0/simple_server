@@ -9,20 +9,9 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+
+	"main/dto"
 )
-
-type Credentials struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
-}
-
-type Token struct {
-	Token string `json:"token"`
-}
-
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
 
 func LoginView(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
@@ -37,7 +26,7 @@ func LoginView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var credentials Credentials
+	var credentials dto.LoginRequest
 
 	e := json.Unmarshal(bodyBytes, &credentials)
 	if e != nil {
@@ -51,7 +40,7 @@ func LoginView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(Token{token})
+	err = json.NewEncoder(w).Encode(dto.TokenResponse{token})
 	if err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
