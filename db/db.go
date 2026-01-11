@@ -5,26 +5,37 @@ import (
 	"fmt"
 	"main/config"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Conn struct {
-	*pgx.Conn
+	*pgxpool.Pool
 }
 
-func (c *Conn) GetPgConn() *pgx.Conn {
-	return c.Conn
+func (c *Conn) GetPool() *pgxpool.Pool {
+	return c.Pool
 }
 
 func (c *Conn) Close() {
-	c.Conn.Close(context.Background())
+	c.Pool.Close()
 }
 
 func Connect() (*Conn, error) {
-	conn, err := pgx.Connect(context.Background(), config.GetDbConnectionString().ConnectionString)
-	if err != nil {
-		return nil, fmt.Errorf("could not connect to database: %v", err)
+	dsn := config.GetDbConnectionString().ConnectionString
+	if dsn == "" {
+		return nil, fmt.Errorf("database connection string is empty")
 	}
 
-	return &Conn{conn}, nil
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create database pool: %v", err)
+	}
+
+	if err = pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("unable to ping database: %v", err)
+	}
+
+	return &Conn{pool}, nil
 }
