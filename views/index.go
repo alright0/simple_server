@@ -18,7 +18,7 @@ func IndexView(w http.ResponseWriter, r *http.Request) {
 	}
 	defer con.Close()
 
-	rows, err := con.Query(context.Background(), "select * from main")
+	rows, err := con.Query(context.Background(), "SELECT * FROM main")
 	if err != nil {
 		http.Error(w, "error while querying db", http.StatusInternalServerError)
 	}

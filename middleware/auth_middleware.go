@@ -4,14 +4,16 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
-			http.Error(w, "You are not authorized", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "You are not authorized"})
+			c.Abort()
 			return
 		}
 
@@ -19,21 +21,27 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		var jwtSecretKey = []byte(os.Getenv("SECRET_KEY"))
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
-				http.Error(w, "Token not valid", http.StatusUnauthorized)
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Token not valid"})
 			}
 			return jwtSecretKey, nil
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, "Error decoding token", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Error decoding token"})
+			c.Abort()
 			return
 		}
 
-		//claims, ok := token.Claims.(jwt.MapClaims)
-		//if !ok {
-		//	http.Error(w, err.Error(), http.StatusUnauthorized)
-		//}
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, err.Error())
+			c.Abort()
+			return
+		}
 
-		next.ServeHTTP(w, r)
-	})
+		email := claims["email"].(string)
+		c.Set("email", string(email))
+
+		c.Next()
+	}
 }

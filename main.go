@@ -1,21 +1,59 @@
 package main
 
 import (
+	"log"
+	"main/db"
 	"net/http"
+	"os"
+	"strings"
+	"time"
 
 	"main/config"
-	"main/middleware"
+	//"main/middleware"
 	"main/views"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	config.InitEnv()
 
-	mux := http.NewServeMux()
+	router := gin.Default()
 
-	mux.Handle("GET /", middleware.AuthMiddleware(http.HandlerFunc(views.IndexView)))
-	mux.Handle("GET /t", http.HandlerFunc(views.IndexView))
-	mux.Handle("POST /login", http.HandlerFunc(views.LoginView))
+	allowedOrigins := strings.Split(os.Getenv("CORS_ALLOW_ORIGINS"), ",")
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: allowedOrigins,
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Type",
+			"Authorization",
+		},
+		AllowCredentials: false,
+		MaxAge:           12 * time.Hour,
+	}))
+	router.SetTrustedProxies([]string{})
 
-	http.ListenAndServe(":8080", mux)
+	conn, err := db.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	pool := conn.GetPool()
+
+	//router.GET("/", middleware.AuthMiddleware(), views.IndexView)
+	//router.GET("/t", http.HandlerFunc(views.IndexView))
+	//router.POST("/login", views.LoginView(pool))
+	router.POST("/login", views.LoginView(pool))
+
+	err := router.Run(":8080")
+	if err != nil {
+		log.Fatal("Unable to start server: ", err)
+	}
 }

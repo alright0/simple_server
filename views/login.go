@@ -1,52 +1,41 @@
 package views
 
 import (
-	"encoding/json"
-	"io"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-
 	"main/dto"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func LoginView(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
+func LoginView(pool pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var credentials dto.LoginRequest
 
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		if err := c.ShouldBindJSON(&credentials); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		//ctx := c.Request.Context()
+		//user, err := ...
+		//if err != nil {
+		//	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		//	return
+		//}
+
+		token, err := generateJWT(credentials.Email)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Not authorized"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"token": token})
 	}
-	if len(bodyBytes) == 0 {
-		http.Error(w, "body is empty", http.StatusBadRequest)
-		return
-	}
-
-	var credentials dto.LoginRequest
-
-	e := json.Unmarshal(bodyBytes, &credentials)
-	if e != nil {
-		http.Error(w, e.Error(), http.StatusUnauthorized)
-		return
-	}
-
-	token, err := generateJWT(credentials.Email)
-	if err != nil {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
-
-	err = json.NewEncoder(w).Encode(dto.TokenResponse{token})
-	if err != nil {
-		log.Printf("Error encoding response: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
 }
 
 func generateJWT(email string) (string, error) {
@@ -57,6 +46,7 @@ func generateJWT(email string) (string, error) {
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecretKey)
+	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token, err := tokenObj.SignedString(jwtSecretKey)
+	return token, err
 }
