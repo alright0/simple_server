@@ -2,15 +2,14 @@ package main
 
 import (
 	"log"
-	"main/db"
+	"main/internal/config"
+	"main/internal/handlers/user_handler"
+	"main/internal/infrastructure/db"
+	"main/internal/middleware"
 	"net/http"
 	"os"
 	"strings"
 	"time"
-
-	"main/config"
-	//"main/middleware"
-	"main/views"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -47,12 +46,12 @@ func main() {
 	}
 	pool := conn.GetPool()
 
-	//router.GET("/", middleware.AuthMiddleware(), views.IndexView)
-	//router.GET("/t", http.HandlerFunc(views.IndexView))
-	//router.POST("/login", views.LoginView(pool))
-	router.POST("/login", views.LoginView(pool))
+	//router.GET("/", middleware.AuthMiddleware(), handlers.IndexView)
+	//router.GET("/t", http.HandlerFunc(handlers.IndexView))
+	router.POST("/create_user", middleware.AuthMiddleware(), user_handler.CreateUser(pool))
+	router.POST("/login", user_handler.LoginView(pool))
 
-	err := router.Run(":8080")
+	err = router.Run(":8080")
 	if err != nil {
 		log.Fatal("Unable to start server: ", err)
 	}

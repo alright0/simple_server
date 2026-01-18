@@ -40,7 +40,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		email := claims["email"].(string)
-		c.Set("email", string(email))
+		c.Set("email", email)
 
 		c.Next()
 	}

@@ -1,18 +1,18 @@
-package views
+package user_handler
 
 import (
+	"main/internal/dto"
+	"main/internal/servicves/user_services"
 	"net/http"
 	"os"
 	"time"
-
-	"main/dto"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func LoginView(pool pgxpool.Pool) gin.HandlerFunc {
+func LoginView(pool *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var credentials dto.LoginRequest
 
@@ -21,14 +21,14 @@ func LoginView(pool pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		//ctx := c.Request.Context()
-		//user, err := ...
-		//if err != nil {
-		//	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		//	return
-		//}
+		ctx := c.Request.Context()
+		user, err := user_services.LoginUser(ctx, pool, credentials)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-		token, err := generateJWT(credentials.Email)
+		token, err := generateJWT(user.Email)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Not authorized"})
 			return

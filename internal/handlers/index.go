@@ -1,9 +1,9 @@
-package views
+package handlers
 
 import (
 	"context"
 	"fmt"
-	"main/db"
+	"main/internal/infrastructure/db"
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
