@@ -12,9 +12,14 @@ import (
 
 func GetUserByEmail(ctx context.Context, pool *pgxpool.Pool, email string) (domain.User, error) {
 	var user domain.User
-	query := `SELECT id, email, password_hash FROM users WHERE email = $1`
+	query := `
+		SELECT id, email, password_hash, is_deleted, updated_at, created_at 
+		FROM users 
+		WHERE email = $1
+	`
+
 	err := pool.QueryRow(ctx, query, email).Scan(
-		&user.Id, &user.Email, &user.PasswordHash,
+		&user.Id, &user.Email, &user.PasswordHash, &user.IsDeleted, &user.UpdatedAt, &user.CreatedAt,
 	)
 
 	if err != nil {
