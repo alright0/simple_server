@@ -38,6 +38,7 @@ func SetupRouter(pool *pgxpool.Pool) *gin.Engine {
 	router.SetTrustedProxies([]string{})
 
 	router.POST("/create_user", middleware.AuthMiddleware(), user_handler.CreateUser(pool))
+	router.GET("/users", middleware.AuthMiddleware(), user_handler.ListUser(pool))
 	router.POST("/delete_user", middleware.AuthMiddleware(), user_handler.DeleteUser(pool))
 	router.POST("/login", user_handler.LoginView(pool))
 

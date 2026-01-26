@@ -10,3 +10,11 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 	CreatedAt    time.Time `json:"created_at"`
 }
+
+type UserForList struct {
+	Id        int       `json:"id"`
+	Email     string    `json:"email"`
+	IsDeleted bool      `json:"is_deleted"`
+	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at"`
+}
