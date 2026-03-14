@@ -13,7 +13,7 @@ RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Создание триггера обноваления столбца updated_at для users
+-- Создание триггера обновления столбца updated_at для users
 DO $$
 BEGIN
   IF NOT EXISTS (
