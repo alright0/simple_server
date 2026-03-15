@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"main/internal/handlers/user_handler"
 	"main/internal/middleware"
 	"net/http"
@@ -35,7 +36,10 @@ func SetupRouter(pool *pgxpool.Pool) *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	router.SetTrustedProxies([]string{})
+	err := router.SetTrustedProxies([]string{})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	router.POST("/create_user", middleware.AuthMiddleware(), user_handler.CreateUser(pool))
 	router.GET("/users", middleware.AuthMiddleware(), user_handler.ListUser(pool))
