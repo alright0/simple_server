@@ -20,7 +20,7 @@ func LoginUser(ctx context.Context, pool *pgxpool.Pool, userData dto.LoginReques
 		return domain.User{}, fmt.Errorf("invalid credentials")
 	}
 	if user.IsDeleted {
-		return domain.User{}, fmt.Errorf("Users is inactive")
+		return domain.User{}, fmt.Errorf("users is inactive")
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(userData.Password)); err != nil {
 		return domain.User{}, fmt.Errorf("invalid credentials")

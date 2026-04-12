@@ -2,7 +2,7 @@ package user_handler
 
 import (
 	"main/internal/dto"
-	"main/internal/servicves/user_services"
+	"main/internal/services/user_services"
 	"net/http"
 	"os"
 	"time"
