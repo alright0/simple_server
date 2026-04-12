@@ -25,7 +25,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			}
 			return jwtSecretKey, nil
 		})
-
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Error decoding token"})
 			c.Abort()

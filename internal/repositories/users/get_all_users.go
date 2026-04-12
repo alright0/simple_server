@@ -20,6 +20,8 @@ func GetUsers(ctx context.Context, pool *pgxpool.Pool) ([]domain.UserForList, er
 		    , roles.title 
 		FROM users
 		JOIN roles ON roles.id = users.role_id
+		WHERE users.is_deleted IS NULL 
+		   OR users.is_deleted = FALSE
 		`
 
 	rows, err := pool.Query(ctx, query)
@@ -31,7 +33,7 @@ func GetUsers(ctx context.Context, pool *pgxpool.Pool) ([]domain.UserForList, er
 	var users []domain.UserForList
 	for rows.Next() {
 		var user domain.UserForList
-		err := rows.Scan(&user.Id, &user.Email, &user.IsDeleted, &user.UpdatedAt, &user.CreatedAt)
+		err = rows.Scan(&user.Id, &user.Email, &user.IsDeleted, &user.UpdatedAt, &user.CreatedAt, &user.RoleName, &user.RoleTitle)
 		if err != nil {
 			return nil, err
 		}

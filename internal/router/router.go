@@ -2,6 +2,7 @@ package router
 
 import (
 	"log"
+	"main/internal/handlers/role_handler"
 	"main/internal/handlers/user_handler"
 	"main/internal/middleware"
 	"net/http"
@@ -41,10 +42,11 @@ func SetupRouter(pool *pgxpool.Pool) *gin.Engine {
 		log.Fatal(err)
 	}
 
-	router.POST("/create_user", middleware.AuthMiddleware(), user_handler.CreateUser(pool))
+	router.POST("/create_user", user_handler.CreateUser(pool))
 	router.GET("/users", middleware.AuthMiddleware(), user_handler.ListUser(pool))
 	router.POST("/delete_user", middleware.AuthMiddleware(), user_handler.DeleteUser(pool))
 	router.POST("/login", user_handler.LoginView(pool))
 
+	router.GET("/roles", middleware.AuthMiddleware(), role_handler.ListRoles(pool))
 	return router
 }
